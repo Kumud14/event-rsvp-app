@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
-import { supabase } from "../../utils/supabase"; // Adjust path if needed
+import { supabase } from '../lib/supabase'
 
 interface Event {
   id: string;
