@@ -1,30 +1,29 @@
-"use client";
+'use client';
 
-import { useSearchParams } from "next/navigation";
-import { useState, useEffect } from "react";
-import { supabase } from '../lib/supabase'
+import { useSearchParams } from 'next/navigation';
+import { useState, useEffect, Suspense } from 'react';
+import { supabase } from '../lib/supabase';
 
-
-export default function RsvpPage() {
+function RsvpContent() {
   const searchParams = useSearchParams();
-  const eventId = searchParams.get("event_id");
+  const eventId = searchParams.get('event_id');
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    status: "Yes",
+    name: '',
+    email: '',
+    status: 'Yes',
   });
 
   const [submitted, setSubmitted] = useState(false);
-  const [eventName, setEventName] = useState("");
+  const [eventName, setEventName] = useState('');
 
   useEffect(() => {
     const fetchEvent = async () => {
       if (eventId) {
-        const { data, error } = await supabase
-          .from("events")
-          .select("title")
-          .eq("id", eventId)
+        const { data } = await supabase
+          .from('events')
+          .select('title')
+          .eq('id', eventId)
           .single();
 
         if (data) {
@@ -44,9 +43,9 @@ export default function RsvpPage() {
 
     // 1. Check if user exists
     const { data: existingUsers } = await supabase
-      .from("users")
-      .select("id")
-      .eq("email", formData.email)
+      .from('users')
+      .select('id')
+      .eq('email', formData.email)
       .single();
 
     let userId = existingUsers?.id;
@@ -54,7 +53,7 @@ export default function RsvpPage() {
     // 2. If user doesn't exist, insert them
     if (!userId) {
       const { data: newUser } = await supabase
-        .from("users")
+        .from('users')
         .insert({
           name: formData.name,
           email: formData.email,
@@ -66,7 +65,7 @@ export default function RsvpPage() {
     }
 
     // 3. Insert RSVP
-    await supabase.from("rsvps").insert({
+    await supabase.from('rsvps').insert({
       user_id: userId,
       event_id: eventId,
       status: formData.status,
@@ -78,7 +77,9 @@ export default function RsvpPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-100 to-purple-100 px-4">
       <div className="max-w-md w-full bg-white p-8 rounded-xl shadow-xl">
-        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">📝 RSVP to {eventName}</h1>
+        <h1 className="text-3xl font-bold text-center mb-6 text-gray-800">
+          📝 RSVP to {eventName}
+        </h1>
 
         {!submitted ? (
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -132,5 +133,13 @@ export default function RsvpPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function RsvpPage() {
+  return (
+    <Suspense fallback={<div className="text-center mt-10">Loading RSVP Form...</div>}>
+      <RsvpContent />
+    </Suspense>
   );
 }
